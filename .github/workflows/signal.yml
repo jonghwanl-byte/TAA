@@ -1,0 +1,39 @@
+name: TAA 시그널
+
+on:
+  schedule:
+    # 05:15 KST = 20:15 UTC 전일. 월~토 실행(= 미국 금~목 마감분).
+    # 서머타임 여부와 무관하게 미국 정규장 마감(06:00/05:00 KST) 전이지만,
+    # yfinance 일봉은 직전 거래일 마감 데이터를 제공하므로 문제없다.
+    - cron: "15 20 * * 0-5"
+  workflow_dispatch:
+
+concurrency:
+  group: taa-signal
+  cancel-in-progress: false
+
+jobs:
+  signal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 의존성 설치
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 시그널 계산 및 전송
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          PORTFOLIO_VALUE:    ${{ secrets.PORTFOLIO_VALUE }}
+          ALWAYS_SEND:        ${{ vars.ALWAYS_SEND || 'true' }}
+        run: python taa_signal.py | tee -a $GITHUB_STEP_SUMMARY
