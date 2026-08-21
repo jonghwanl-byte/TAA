@@ -2,11 +2,11 @@ name: TAA 시그널
 
 on:
   schedule:
-    # 05:15 KST = 20:15 UTC 전일. 월~토 실행(= 미국 금~목 마감분).
-    # 서머타임 여부와 무관하게 미국 정규장 마감(06:00/05:00 KST) 전이지만,
-    # yfinance 일봉은 직전 거래일 마감 데이터를 제공하므로 문제없다.
-    - cron: "15 20 * * 0-5"
-  workflow_dispatch:
+    # 20:40 UTC = 다음날 05:40 KST
+    # GitHub 예약 실행은 30분 지연될 수 있어 30분 앞당겨 둡니다.
+    # UTC 일~금(0-5) = KST 월~토 → 일요일 수신 제외
+    - cron: "40 20 * * 0-5"
+  workflow_dispatch:        # Actions 탭에서 수동 실행 버튼
 
 concurrency:
   group: taa-signal
